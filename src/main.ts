@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { TransformInterceptor } from './core/transform.interceptor';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -19,6 +20,9 @@ async function bootstrap() {
   app.setViewEngine('ejs');
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
+
+  // config cookie 
+  app.use(cookieParser());
   //config cors
   app.enableCors({
     origin: '*',
@@ -29,8 +33,8 @@ async function bootstrap() {
   // config versioning
   app.setGlobalPrefix('api');
   app.enableVersioning({
-  type: VersioningType.URI,
-  defaultVersion: ['1', '2']
+    type: VersioningType.URI,
+    defaultVersion: ['1', '2'],
   });
   await app.listen(configService.get<string>('DB_PORT'));
 }
