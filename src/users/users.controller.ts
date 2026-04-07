@@ -25,7 +25,8 @@ export class UsersController {
     // @Body('email') email: string,
     // @Body('password') password: string,
     // @Body('name') name: string,
-    @Body() createUserDto: CreateUserDto,@User() user: IUser
+    @Body() createUserDto: CreateUserDto,
+    @User() user: IUser,
   ) {
     // return this.usersService.create(email, password, name);
     return this.usersService.create(createUserDto, user);

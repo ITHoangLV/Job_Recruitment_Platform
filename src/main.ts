@@ -21,7 +21,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
-  // config cookie 
+  // config cookie
   app.use(cookieParser());
   //config cors
   app.enableCors({

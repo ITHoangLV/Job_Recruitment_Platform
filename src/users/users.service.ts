@@ -25,9 +25,13 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto, user: IUser) {
     const hashPassword = this.getHashPassword(createUserDto.password);
-    const isExist = await this.userModel.findOne({ email: createUserDto.email });
+    const isExist = await this.userModel.findOne({
+      email: createUserDto.email,
+    });
     if (isExist) {
-      throw new BadRequestException(`Email ${createUserDto.email} đã tồn tại trên hệ thống!`);
+      throw new BadRequestException(
+        `Email ${createUserDto.email} đã tồn tại trên hệ thống!`,
+      );
     }
     const newUser = await this.userModel.create({
       email: createUserDto.email,
@@ -38,15 +42,15 @@ export class UsersService {
       address: createUserDto.address,
       role: createUserDto.role,
       company: createUserDto.company,
-      createdBy: { 
+      createdBy: {
         _id: user._id,
         email: user.email,
-       },
+      },
     });
     // console.log(user);
     return {
       _id: newUser._id,
-      createdAt: newUser.createdAt
+      createdAt: newUser.createdAt,
     };
   }
 
@@ -96,14 +100,14 @@ export class UsersService {
 
   async update(updateUserDto: UpdateUserDto, user: IUser) {
     return await this.userModel.updateOne(
-          {_id: updateUserDto._id },
-      { 
-      ...UpdateUserDto, 
-      updatedBy: {
-        _id: user._id,
-        email: user.email,
+      { _id: updateUserDto._id },
+      {
+        ...UpdateUserDto,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
+        },
       },
-    }
     );
   }
 
@@ -121,13 +125,13 @@ export class UsersService {
   }
 
   async register(user: RegisterUserDto) {
-    const {name , email, password, age, gender, address} = user;
+    const { name, email, password, age, gender, address } = user;
     const isExist = await this.userModel.findOne({ email });
     if (isExist) {
       throw new BadRequestException(`Email ${email} đã tồn tại trên hệ thống!`);
     }
     const hashPassword = await this.getHashPassword(password);
-    let newUser = await this.userModel.create({
+    const newUser = await this.userModel.create({
       name,
       email,
       password: hashPassword,
@@ -139,14 +143,16 @@ export class UsersService {
     return newUser;
   }
 
-
-  updateUserToken = async (refreshToken: string, _id : string) => {
+  updateUserToken = async (refreshToken: string, _id: string) => {
     return await this.userModel.updateOne(
       { _id },
       {
         refreshToken,
       },
     );
+  };
 
-  }
+  findUserByToken = async (refreshToken: string) => {
+    return await this.userModel.findOne({ refreshToken });
+  };
 }
