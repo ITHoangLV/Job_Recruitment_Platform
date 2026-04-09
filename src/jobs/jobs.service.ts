@@ -10,9 +10,9 @@ import aqp from 'api-query-params';
 
 @Injectable()
 export class JobsService {
-    constructor(
-      @InjectModel(Job.name) private jobModel: SoftDeleteModel<JobDocument>,
-    ) {}
+  constructor(
+    @InjectModel(Job.name) private jobModel: SoftDeleteModel<JobDocument>,
+  ) {}
   async create(createJobDto: CreateJobDto, user: IUser) {
     const jobNew = await this.jobModel.create({
       name: createJobDto.name,
@@ -69,40 +69,40 @@ export class JobsService {
   async findOne(id: string) {
     const job = await this.jobModel.findOne({
       _id: id,
-      isDeleted: false
-    })
-    if (!job){
-      throw new NotFoundException(`Không tồn tại job với ID: ${id}`)
+      isDeleted: false,
+    });
+    if (!job) {
+      throw new NotFoundException(`Không tồn tại job với ID: ${id}`);
     }
     return job;
   }
 
-async update(id: string, updateJobDto: UpdateJobDto, user: IUser) {
-  return await this.jobModel.updateOne(
-    {
-      _id: id
-    },
-    {
-      ...updateJobDto,
-      updatedBy: {
-        _id: user._id,
-        email: user.email,
-      }
-    }
-  );
-}
-
- async remove(id: string, user: IUser) {
-    const job = await this.jobModel.updateOne(
-      {_id: id },
+  async update(id: string, updateJobDto: UpdateJobDto, user: IUser) {
+    return await this.jobModel.updateOne(
       {
-        deletedBy:{
+        _id: id,
+      },
+      {
+        ...updateJobDto,
+        updatedBy: {
           _id: user._id,
           email: user.email,
-        }
-      }
-    )
+        },
+      },
+    );
+  }
+
+  async remove(id: string, user: IUser) {
+    const job = await this.jobModel.updateOne(
+      { _id: id },
+      {
+        deletedBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      },
+    );
     console.log(job);
-    return this.jobModel.softDelete({_id: id});
+    return this.jobModel.softDelete({ _id: id });
   }
 }
