@@ -16,7 +16,7 @@ export class JobsService {
   async create(createJobDto: CreateJobDto, user: IUser) {
     const jobNew = await this.jobModel.create({
       name: createJobDto.name,
-      skill: createJobDto.skill,
+      skills: createJobDto.skills,
       company: createJobDto.company,
       location: createJobDto.location,
       salary: createJobDto.salary,
