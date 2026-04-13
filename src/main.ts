@@ -18,7 +18,7 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'public')); // js , css , images
   app.setBaseViewsDir(join(__dirname, '..', 'views')); // view
   app.setViewEngine('ejs');
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useGlobalInterceptors(new TransformInterceptor(reflector));
 
   // config cookie

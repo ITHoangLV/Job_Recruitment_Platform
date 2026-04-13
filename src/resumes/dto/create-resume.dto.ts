@@ -5,11 +5,11 @@ export class CreateResumeDto {
   @IsNotEmpty({ message: 'url không được để trống' })
   url: string;
 
-  @IsMongoId({ message: 'company phải là một ObjectId hợp lệ' })
-  @IsNotEmpty({ message: 'company không được để trống' })
-  company: mongoose.Schema.Types.ObjectId;
+  @IsMongoId({ message: 'companyId phải là một ObjectId hợp lệ' })
+  @IsNotEmpty({ message: 'companyId không được để trống' })
+  companyId: mongoose.Schema.Types.ObjectId;
 
-  @IsMongoId({ message: 'job phải là một ObjectId hợp lệ' })
-  @IsNotEmpty({ message: 'job không được để trống' })
-  job: mongoose.Schema.Types.ObjectId;
+  @IsMongoId({ message: 'jobId phải là một ObjectId hợp lệ' })
+  @IsNotEmpty({ message: 'jobId  không được để trống' })
+  jobId: mongoose.Schema.Types.ObjectId;
 }
