@@ -8,17 +8,18 @@ import { InjectModel } from '@nestjs/mongoose/dist/common/mongoose.decorators';
 import { create } from 'node:domain';
 import aqp from 'api-query-params';
 import mongoose from 'mongoose';
+import { ADMIN_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class RolesService {
-constructor(
-  @InjectModel(Role.name)
-      private roleModel: SoftDeleteModel<RoleDocument>,
-    ) {}
-  async create(createRoleDto: CreateRoleDto, user:IUser) {
-    const {name,description, isActive, permissions} = createRoleDto;
-    const isExist = await this.roleModel.findOne({name});
-    if(isExist) {
+  constructor(
+    @InjectModel(Role.name)
+    private roleModel: SoftDeleteModel<RoleDocument>,
+  ) {}
+  async create(createRoleDto: CreateRoleDto, user: IUser) {
+    const { name, description, isActive, permissions } = createRoleDto;
+    const isExist = await this.roleModel.findOne({ name });
+    if (isExist) {
       throw new BadRequestException('Role đã tồn tại');
     }
     const newRole = await this.roleModel.create({
@@ -34,11 +35,10 @@ constructor(
     return {
       _id: newRole._id,
       createdAt: newRole.createdAt,
-    }
-
+    };
   }
 
-  async findAll( currentPage: number, limit: number, qs: string) {
+  async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, population } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
@@ -68,22 +68,26 @@ constructor(
   }
 
   async findOne(id: string) {
-    if(!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException('ID không hợp lệ');
     }
-    return (await this.roleModel.findById(id)).populate({ path: 'permissions', select: {_id: 1, apiPath: 1, name: 1, method: 1} });
+    return (await this.roleModel.findById(id)).populate({
+      path: 'permissions',
+      select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 },
+    });
   }
 
   async update(id: string, updateRoleDto: UpdateRoleDto, user: IUser) {
-    if(!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException('ID không hợp lệ');
     }
-    const { name, description, isActive, permissions} = updateRoleDto;
-    const isExist = await this.roleModel.findOne({name});
-    if(!isExist) {
-      throw new BadRequestException('Role với tên này đã tồn tại');
-    }
-    return await this.roleModel.updateOne({ _id: id },
+    const { name, description, isActive, permissions } = updateRoleDto;
+    // const isExist = await this.roleModel.findOne({ name });
+    // if (!isExist) {
+    //   throw new BadRequestException('Role với tên này đã tồn tại');
+    // }
+    return await this.roleModel.updateOne(
+      { _id: id },
       {
         name,
         description,
@@ -93,17 +97,27 @@ constructor(
           _id: user._id,
           email: user.email,
         },
-      }
+      },
     );
   }
 
-  remove(id: string, user: IUser) {
-    this.roleModel.updateOne({ _id: id }, {
-      deletedBy: {
-        _id: user._id,
-        email: user.email,
+  async remove(id: string, user: IUser) {
+    const foundRole = await this.roleModel.findById(id);
+    if (foundRole.name === ADMIN_ROLE) {
+      throw new BadRequestException('Không thể xóa role này!');
+    }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID không hợp lệ');
+    }
+    await this.roleModel.updateOne(
+      { _id: id },
+      {
+        deletedBy: {
+          _id: user._id,
+          email: user.email,
+        },
       },
-    })
+    );
     return this.roleModel.softDelete({ _id: id });
   }
 }

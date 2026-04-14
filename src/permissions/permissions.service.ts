@@ -40,7 +40,7 @@ export class PermissionsService {
     };
   }
 
-  async findAll( currentPage: number, limit: number, qs: string) {
+  async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, population } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
@@ -70,29 +70,35 @@ export class PermissionsService {
   }
 
   async findOne(id: string) {
-    if(!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException('ID không hợp lệ');
     }
     return await this.permissionModel.findById(id);
   }
 
-  async update(id: string, updatePermissionDto: UpdatePermissionDto, user: IUser) {
-    if(!mongoose.Types.ObjectId.isValid(id)) {
+  async update(
+    id: string,
+    updatePermissionDto: UpdatePermissionDto,
+    user: IUser,
+  ) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new BadRequestException('ID không hợp lệ');
     }
 
     return await this.permissionModel.updateOne(
       { _id: id },
-      { ...updatePermissionDto, updatedBy: { _id: user._id, email: user.email } }
+      {
+        ...updatePermissionDto,
+        updatedBy: { _id: user._id, email: user.email },
+      },
     );
   }
-  
 
   async remove(id: string, user: IUser) {
-     await this.permissionModel.updateOne(
-  { _id: id },
-  { deletedBy: { _id: user._id, email: user.email } }
-  );
-  return await this.permissionModel.softDelete({ _id: id });
+    await this.permissionModel.updateOne(
+      { _id: id },
+      { deletedBy: { _id: user._id, email: user.email } },
+    );
+    return await this.permissionModel.softDelete({ _id: id });
   }
 }

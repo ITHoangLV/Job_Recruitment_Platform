@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { emitWarning } from 'process';
@@ -10,11 +10,15 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from './users.interface';
 import { createDeflate } from 'zlib';
 import aqp from 'api-query-params';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
+import { USER_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+
+    @InjectModel(Role.name) private roleModel: SoftDeleteModel<RoleDocument>,
   ) {}
 
   getHashPassword = (password: string) => {
@@ -85,13 +89,18 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    return await this.userModel.findById(id).select('-password');
+    return (await this.userModel.findById(id).select('-password')).populate({
+      path: 'company',
+      select: { name: 1, _id: 1 },
+    });
   }
 
   findOneByUsername(username: string) {
-    return this.userModel.findOne({
-      email: username,
-    });
+    return this.userModel
+      .findOne({
+        email: username,
+      })
+      .populate({ path: 'role', select: { name: 1 } });
   }
 
   isValidePassword(password: string, hash: string) {
@@ -112,6 +121,13 @@ export class UsersService {
   }
 
   async remove(id: string, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Not found');
+    }
+    const foundUser = await this.userModel.findById(id);
+    if (foundUser.email === 'luuviethoang2005@gmail.com') {
+      throw new BadRequestException('Không thể xóa tài khoản này!');
+    }
     await this.userModel.updateOne(
       { _id: id },
       {
@@ -130,6 +146,7 @@ export class UsersService {
     if (isExist) {
       throw new BadRequestException(`Email ${email} đã tồn tại trên hệ thống!`);
     }
+    const userRole = await this.roleModel.findOne({ name: USER_ROLE });
     const hashPassword = await this.getHashPassword(password);
     const newUser = await this.userModel.create({
       name,
@@ -138,7 +155,7 @@ export class UsersService {
       age,
       gender,
       address,
-      role: 'USER',
+      role: userRole?._id,
     });
     return newUser;
   }
@@ -153,6 +170,9 @@ export class UsersService {
   };
 
   findUserByToken = async (refreshToken: string) => {
-    return await this.userModel.findOne({ refreshToken });
+    return await this.userModel.findOne({ refreshToken }).populate({
+      path: 'role',
+      select: { name: 1 },
+    });
   };
 }

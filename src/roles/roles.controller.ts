@@ -42,7 +42,11 @@ export class RolesController {
 
   @Patch(':id')
   @ResponseMessage('Update a role by ID')
-  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto, @User() user: IUser) {
+  update(
+    @Param('id') id: string,
+    @Body() updateRoleDto: UpdateRoleDto,
+    @User() user: IUser,
+  ) {
     return this.rolesService.update(id, updateRoleDto, user);
   }
 

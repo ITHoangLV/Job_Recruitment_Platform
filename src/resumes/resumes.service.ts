@@ -122,9 +122,22 @@ export class ResumesService {
     return await this.resumeModel.softDelete({ _id: id });
   }
 
-  getResumesByUser(user: IUser) {
-    return this.resumeModel.find({
-      userId: user._id,
-    });
+  async getResumesByUser(user: IUser) {
+    return await this.resumeModel
+      .find({
+        userId: user._id,
+      }) // 1. Bỏ dấu chấm phẩy ở đây để nối lệnh (chaining)
+      .sort('-createdAt')
+      .populate([
+        {
+          path: 'company', // 2. Đổi 'companyId' thành 'company'
+          select: { name: 1 },
+        },
+        {
+          path: 'job', // 3. Đổi 'jobId' thành 'job'
+          select: { name: 1 },
+        },
+      ])
+      .exec(); // Thêm .exec() để trả về một Promise chuẩn của Mongoose
   }
 }
